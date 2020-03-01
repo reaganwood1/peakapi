@@ -16,9 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from .views import login, sample_api
+from goals.views import get_goals, post_goal
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login),
     path('sampleapi/', sample_api),
+    path('goals/', get_goals),
+    path('goal/', post_goal),
 ]
