@@ -1,2 +1,2 @@
 # peakapi
-Peak Backend API
+Peak Backend API written in Django.
