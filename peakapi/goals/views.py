@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from goals.models import Goal
+from goals.models import Goal, GoalChallenge
 
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -32,7 +32,7 @@ def post_goal(request):
                         status=HTTP_400_BAD_REQUEST)
    	# check if the title already exists
    	matching_results = Goal.objects.filter(title=title)
-   	if not matching_results.exists():
+   	if matching_results.exists():
    		return Response({'error': 'This goal already exists'},
                         status=HTTP_400_BAD_REQUEST)
 
@@ -41,6 +41,37 @@ def post_goal(request):
 
    	values = []
    	values.append(goal)
+
+   	response = serializers.serialize("json", values)
+
+   	return HttpResponse(response, content_type='application/json')
+
+@csrf_exempt
+@api_view(["POST"])
+def post_goal_challenge(request):
+   	title = request.data.get("title")
+   	attempts_to_complete = request.data.get("attempts_to_complete")
+   	failure_amount = request.data.get("failure_amount")
+   	goal_id = request.data.get("goal_id")
+
+   	if title is None or attempts_to_complete is None or failure_amount is None or goal_id is None:
+   		return Response({'error': 'Please provide a title, attempts to complete, and a failure amount'},
+                        status=HTTP_400_BAD_REQUEST)
+   	# check if the title already exists
+   	#TODO: check for identical ones
+
+   	matching_goal = Goal.objects.get(pk=goal_id)
+   	if matching_goal is None:
+   		return Response({'error': 'Goal not found'},
+                        status=HTTP_400_BAD_REQUEST)
+
+
+   	goal_attempt = GoalChallenge(title=title,
+   		attempts_to_complete=attempts_to_complete, failure_amount=failure_amount, goal=matching_goal)
+   	goal_attempt.save()
+
+   	values = []
+   	values.append(goal_attempt)
 
    	response = serializers.serialize("json", values)
 

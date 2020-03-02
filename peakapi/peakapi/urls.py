@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from .views import login, sample_api
-from goals.views import get_goals, post_goal
+from goals.views import get_goals, post_goal, post_goal_challenge
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,4 +24,5 @@ urlpatterns = [
     path('sampleapi/', sample_api),
     path('goals/', get_goals),
     path('goal/', post_goal),
+    path('challenge/', post_goal_challenge)
 ]
