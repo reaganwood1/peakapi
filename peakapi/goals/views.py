@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from goals.models import Goal, GoalChallenge
+from goals.models import Goal, GoalChallenge, GoalAttempt
 
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -68,6 +68,37 @@ def post_goal_challenge(request):
 
    	goal_attempt = GoalChallenge(title=title,
    		attempts_to_complete=attempts_to_complete, failure_amount=failure_amount, goal=matching_goal)
+   	goal_attempt.save()
+
+   	values = []
+   	values.append(goal_attempt)
+
+   	response = serializers.serialize("json", values)
+
+   	return HttpResponse(response, content_type='application/json')
+
+@csrf_exempt
+@api_view(["GET"])
+def get_goal_challenges(request):
+	challenges = GoalChallenge.objects.all()
+
+	response = serializers.serialize("json", challenges)
+	return HttpResponse(response, content_type='application/json')
+
+@csrf_exempt
+@api_view(["POST"])
+def post_user_goal_attempt(request, id):
+   	user = request.user
+   	#TODO: check for identical ones
+
+   	matching_goal_challenge = GoalChallenge.objects.get(pk=id)
+   	if matching_goal_challenge is None:
+   		return Response({'error': 'Goal challenge not found'},
+                        status=HTTP_400_BAD_REQUEST)
+
+
+   	goal_attempt = GoalAttempt(user=user,
+   		misess_remaining=matching_goal_challenge.failure_amount, goal_challenge=matching_goal_challenge)
    	goal_attempt.save()
 
    	values = []
