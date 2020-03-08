@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from goals.models import Goal, GoalChallenge, GoalAttempt
+from goals.models import Goal, GoalChallenge, GoalAttempt, GoalAttemptEntry
+from datetime import datetime
 
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -86,6 +87,15 @@ def get_goal_challenges(request):
 	return HttpResponse(response, content_type='application/json')
 
 @csrf_exempt
+@api_view(["GET"])
+def get_user_goal_attempts(request, id):
+	user = request.user
+	challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user)
+
+	response = serializers.serialize("json", challenges)
+	return HttpResponse(response, content_type='application/json')
+
+@csrf_exempt
 @api_view(["POST"])
 def post_user_goal_attempt(request, id):
    	user = request.user
@@ -107,3 +117,58 @@ def post_user_goal_attempt(request, id):
    	response = serializers.serialize("json", values)
 
    	return HttpResponse(response, content_type='application/json')
+
+@csrf_exempt
+@api_view(["POST"])
+def post_user_goal_entry(request, goal_attempt_id):
+	user = request.user
+
+	completed_in_time_period = request.data.get("completed_in_time_period")
+	if completed_in_time_period is None:
+		return Response({'error': 'Please include completed in request'},
+                        status=HTTP_400_BAD_REQUEST)
+
+	matching_goal_attempt = GoalAttempt.objects.select_related('goal_challenge').get(pk=goal_attempt_id)
+	if matching_goal_attempt is None:
+   		return Response({'error': 'Goal attempt not found'},
+                        status=HTTP_400_BAD_REQUEST)
+
+   	#is goal attempt already finished
+	if matching_goal_attempt.misess_remaining < 0:
+   		return Response({'error': 'Goal attempt already failed'},
+                        status=HTTP_400_BAD_REQUEST)
+
+	if matching_goal_attempt.completed == True:
+   		return Response({'error': 'Goal attempt already succeeded'},
+                        status=HTTP_400_BAD_REQUEST)
+	
+	goal_entrys = GoalAttemptEntry.objects.filter(user = request.user, goal_attempt=matching_goal_attempt)
+	for goal_entry in goal_entrys:
+   		if goal_entry.created_at.date() >= datetime.today().date():
+   			return Response({'error': 'Goal has already been created today'},
+                        status=HTTP_400_BAD_REQUEST)
+
+	goal_attempt_entry = GoalAttemptEntry(user=user,
+   		goal_attempt=matching_goal_attempt, completed_in_time_period=completed_in_time_period)
+	goal_attempt_entry.save()
+
+   	# Check the status of the goal attempt
+	goal_challenge = matching_goal_attempt.goal_challenge
+
+	if completed_in_time_period == False:
+   		matching_goal_attempt.misess_remaining -= 1
+	else:
+   		matching_goal_attempt.current_completed += 1
+   		if goal_challenge.attempts_to_complete == matching_goal_attempt.current_completed:
+   			matching_goal_attempt.completed = True
+
+	matching_goal_attempt.save()
+
+   	# return both to the consuming party
+
+	values = []
+	values.append(matching_goal_attempt)
+
+	response = serializers.serialize("json", values)
+
+	return HttpResponse(response, content_type='application/json')

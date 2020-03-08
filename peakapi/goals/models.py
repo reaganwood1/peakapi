@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from goals.timestamp import TimeStampedModel
 
 # Create your models here.
 class Goal(models.Model):
@@ -19,6 +20,9 @@ class GoalAttempt(models.Model):
 	goal_challenge = models.ForeignKey(GoalChallenge, on_delete=models.PROTECT)
 	completed = models.BooleanField(default=False)
 
-
+class GoalAttemptEntry(TimeStampedModel):
+	user = models.ForeignKey(User, on_delete=models.PROTECT)
+	goal_attempt = models.ForeignKey(GoalAttempt, on_delete=models.PROTECT)
+	completed_in_time_period = models.BooleanField(default=False)
 
 
