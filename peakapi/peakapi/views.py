@@ -53,10 +53,7 @@ def loginFromAccessToken(request):
         return Response({'error': 'cannot log in.'},
                         status=HTTP_400_BAD_REQUEST)
 
-    values = []
-    values.append(user)
-
-    response = serializers.serialize("json", values)
+    response = serializers.serialize("json", [user])
 
     return HttpResponse(response, content_type='application/json')
 

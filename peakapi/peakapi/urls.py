@@ -27,7 +27,7 @@ urlpatterns = [
     path('goal/', post_goal),
     path('challenge/', post_goal_challenge),
     path('challenges/', get_goal_challenges),
-   	path('goal/attempt/<int:id>', post_user_goal_attempt),
-   	path('user/<int:id>/attempts', get_user_goal_attempts),
-   	path('user/attempt/<int:goal_attempt_id>/entry', post_user_goal_entry)
+   	path('goal/attempt/<int:id>/', post_user_goal_attempt),
+   	path('user/<int:id>/attempts/', get_user_goal_attempts),
+   	path('user/attempt/<int:goal_attempt_id>/entry/', post_user_goal_entry)
 ]

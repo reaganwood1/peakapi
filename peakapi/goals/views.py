@@ -90,7 +90,7 @@ def get_goal_challenges(request):
 @api_view(["GET"])
 def get_user_goal_attempts(request, id):
 	user = request.user
-	challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user)
+	challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, misess_remaining__gte=0, completed=False)
 
 	response = serializers.serialize("json", challenges)
 	return HttpResponse(response, content_type='application/json')
@@ -123,7 +123,8 @@ def post_user_goal_attempt(request, id):
 def post_user_goal_entry(request, goal_attempt_id):
 	user = request.user
 
-	completed_in_time_period = request.data.get("completed_in_time_period")
+	completed_in_time_period = json.loads(request.POST.get('completed_in_time_period', 'false'))
+
 	if completed_in_time_period is None:
 		return Response({'error': 'Please include completed in request'},
                         status=HTTP_400_BAD_REQUEST)
@@ -138,7 +139,7 @@ def post_user_goal_entry(request, goal_attempt_id):
    		return Response({'error': 'Goal attempt already failed'},
                         status=HTTP_400_BAD_REQUEST)
 
-	if matching_goal_attempt.completed == True:
+	if matching_goal_attempt.completed is True:
    		return Response({'error': 'Goal attempt already succeeded'},
                         status=HTTP_400_BAD_REQUEST)
 	
@@ -155,7 +156,7 @@ def post_user_goal_entry(request, goal_attempt_id):
    	# Check the status of the goal attempt
 	goal_challenge = matching_goal_attempt.goal_challenge
 
-	if completed_in_time_period == False:
+	if completed_in_time_period is False:
    		matching_goal_attempt.misess_remaining -= 1
 	else:
    		matching_goal_attempt.current_completed += 1
