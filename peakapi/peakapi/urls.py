@@ -15,12 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import login, sample_api
+from .views import login, sample_api, loginFromAccessToken
 from goals.views import get_goals, post_goal, post_goal_challenge, post_user_goal_attempt, get_goal_challenges, get_user_goal_attempts, post_user_goal_entry
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login),
+    path('login/access-token', loginFromAccessToken),
     path('sampleapi/', sample_api),
     path('goals/', get_goals),
     path('goal/', post_goal),

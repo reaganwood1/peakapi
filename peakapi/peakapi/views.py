@@ -9,6 +9,9 @@ from rest_framework.status import (
     HTTP_200_OK
 )
 from rest_framework.response import Response
+from django.core import serializers
+from django.http import HttpResponse
+import json
 
 
 @csrf_exempt
@@ -25,8 +28,38 @@ def login(request):
         return Response({'error': 'Invalid Credentials'},
                         status=HTTP_404_NOT_FOUND)
     token, _ = Token.objects.get_or_create(user=user)
+    print(user.pk)
     return Response({'token': token.key},
                     status=HTTP_200_OK)
+
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes((AllowAny,))
+def loginFromAccessToken(request):
+    access_token = request.data.get("access_token")
+    user_id = request.data.get("user_id")
+
+    if access_token is None or user_id is None:
+        return Response({'error': 'error logging in.'},
+                        status=HTTP_400_BAD_REQUEST)
+    fullToken = Token.objects.select_related('user').get(pk=access_token)
+    if fullToken is None:
+        return Response({'error': 'error logging in.'},
+                        status=HTTP_400_BAD_REQUEST)
+
+    user = fullToken.user
+
+    if int(user.pk) != int(user_id):
+        return Response({'error': 'cannot log in.'},
+                        status=HTTP_400_BAD_REQUEST)
+
+    values = []
+    values.append(user)
+
+    response = serializers.serialize("json", values)
+
+    return HttpResponse(response, content_type='application/json')
+
 
 
 
