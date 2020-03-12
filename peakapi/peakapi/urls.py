@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from .views import login, sample_api, loginFromAccessToken
-from goals.views import get_goals, post_goal, post_goal_challenge, post_user_goal_attempt, get_goal_challenges, get_user_goal_attempts, post_user_goal_entry
+from goals.views import get_goals, post_goal, post_goal_challenge, post_user_goal_attempt, get_goal_challenges, get_user_goal_attempts, post_user_goal_entry, get_completed_user_goal_attempts, get_failed_user_goal_attempts
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,5 +29,7 @@ urlpatterns = [
     path('challenges/', get_goal_challenges),
    	path('goal/attempt/<int:id>/', post_user_goal_attempt),
    	path('user/<int:id>/attempts/', get_user_goal_attempts),
+   	path('user/<int:id>/attempts/completed/', get_completed_user_goal_attempts),
+   	path('user/<int:id>/attempts/failed/', get_failed_user_goal_attempts),
    	path('user/attempt/<int:goal_attempt_id>/entry/', post_user_goal_entry)
 ]

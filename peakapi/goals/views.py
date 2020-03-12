@@ -96,6 +96,24 @@ def get_user_goal_attempts(request, id):
 	return HttpResponse(response, content_type='application/json')
 
 @csrf_exempt
+@api_view(["GET"])
+def get_completed_user_goal_attempts(request, id):
+	user = request.user
+	challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, completed=True)
+
+	response = serializers.serialize("json", challenges)
+	return HttpResponse(response, content_type='application/json')
+
+@csrf_exempt
+@api_view(["GET"])
+def get_failed_user_goal_attempts(request, id):
+	user = request.user
+	challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, misess_remaining__lt=0)
+
+	response = serializers.serialize("json", challenges)
+	return HttpResponse(response, content_type='application/json')
+
+@csrf_exempt
 @api_view(["POST"])
 def post_user_goal_attempt(request, id):
    	user = request.user
