@@ -19,7 +19,7 @@ import json
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def login(request):
-    username = request.data.get("username")
+    username = request.data.get("user_name")
     password = request.data.get("password")
     if username is None or password is None:
         return Response({'error': 'Please provide both username and password'},
@@ -29,9 +29,11 @@ def login(request):
         return Response({'error': 'Invalid Credentials'},
                         status=HTTP_404_NOT_FOUND)
     token, _ = Token.objects.get_or_create(user=user)
+
+    user_dic = model_to_dict(user)
+    token_dic = model_to_dict(token)
     
-    return Response({'token': token.key},
-                    status=HTTP_200_OK)
+    return JsonResponse({"user": user_dic, "token": token.key})
 
 @csrf_exempt
 @api_view(["POST"])
