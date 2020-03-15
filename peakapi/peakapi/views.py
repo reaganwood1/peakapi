@@ -10,7 +10,8 @@ from rest_framework.status import (
 )
 from rest_framework.response import Response
 from django.core import serializers
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.forms.models import model_to_dict
 import json
 
 
@@ -28,7 +29,7 @@ def login(request):
         return Response({'error': 'Invalid Credentials'},
                         status=HTTP_404_NOT_FOUND)
     token, _ = Token.objects.get_or_create(user=user)
-    print(user.pk)
+    
     return Response({'token': token.key},
                     status=HTTP_200_OK)
 
@@ -53,9 +54,9 @@ def loginFromAccessToken(request):
         return Response({'error': 'cannot log in.'},
                         status=HTTP_400_BAD_REQUEST)
 
-    response = serializers.serialize("json", [user])
+    user_dic = model_to_dict(user)
 
-    return HttpResponse(response, content_type='application/json')
+    return JsonResponse({"user": user_dic})
 
 
 
