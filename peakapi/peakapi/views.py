@@ -58,7 +58,7 @@ def loginFromAccessToken(request):
 
     user_dic = model_to_dict(user)
 
-    return JsonResponse({"user": user_dic})
+    return JsonResponse({"user": user_dic, "token": access_token})
 
 
 

@@ -14,15 +14,16 @@ from rest_framework.status import (
 )
 from rest_framework.response import Response
 from django.core import serializers
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.forms.models import model_to_dict
 import json
 
 @csrf_exempt
 @api_view(["GET"])
 def get_goals(request):
-	goals = Goal.objects.all()
-	response = serializers.serialize("json", goals)
-	return HttpResponse(response, content_type='application/json')
+        goals = Goal.objects.all()
+        goalModels = list(map(lambda model: model_to_dict(model), goals))
+        return JsonResponse({"goals": goalModels})
 
 @csrf_exempt
 @api_view(["POST"])
