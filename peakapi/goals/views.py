@@ -90,11 +90,10 @@ def get_goal_challenges(request):
 @csrf_exempt
 @api_view(["GET"])
 def get_user_goal_attempts(request, id):
-	user = request.user
-	challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, misess_remaining__gte=0, completed=False)
-
-	response = serializers.serialize("json", challenges)
-	return HttpResponse(response, content_type='application/json')
+        user = request.user
+        challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, misess_remaining__gte=0, completed=False)
+        json_challenges = list(map(lambda model: model_to_dict(model), challenges))
+        return JsonResponse({"attempts": json_challenges})
 
 @csrf_exempt
 @api_view(["GET"])
