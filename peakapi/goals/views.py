@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from goals.models import Goal, GoalChallenge, GoalAttempt, GoalAttemptEntry
+from goals.model_serializers import GoalAttemptSerializer
 from datetime import datetime
 
 from django.contrib.auth import authenticate
@@ -92,8 +93,13 @@ def get_goal_challenges(request):
 def get_user_goal_attempts(request, id):
         user = request.user
         challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, misess_remaining__gte=0, completed=False)
-        json_challenges = list(map(lambda model: model_to_dict(model), challenges))
-        return JsonResponse({"attempts": json_challenges})
+
+        serialized_challenges = []
+        for challenge in challenges:
+          serializer = GoalAttemptSerializer(challenge)
+          serialized_challenges.append(serializer.data)
+
+        return JsonResponse({"attempts": serialized_challenges})
 
 @csrf_exempt
 @api_view(["GET"])
