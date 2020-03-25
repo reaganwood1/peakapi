@@ -83,10 +83,9 @@ def post_goal_challenge(request):
 @csrf_exempt
 @api_view(["GET"])
 def get_goal_challenges(request):
-	challenges = GoalChallenge.objects.all()
-
-	response = serializers.serialize("json", challenges)
-	return HttpResponse(response, content_type='application/json')
+    challenges = GoalChallenge.objects.all()
+    challenge_models = list(map(lambda challenge: model_to_dict(challenge), challenges))
+    return JsonResponse({"challenges": challenge_models})
 
 @csrf_exempt
 @api_view(["GET"])
