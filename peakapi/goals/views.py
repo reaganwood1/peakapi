@@ -89,6 +89,24 @@ def get_goal_challenges(request):
 
 @csrf_exempt
 @api_view(["GET"])
+def get_available_user_challenges_for_topic(request, topic_id):
+    matching_topic = Goal.objects.filter(pk=topic_id).first()
+    if matching_topic is None:
+      return Response({'error': 'Topic not found'},
+                        status=HTTP_400_BAD_REQUEST)
+
+    user = request.user
+
+    userGoalChallenges = GoalAttempt.objects.filter(user=user, completed=False).select_related('goal_challenge')
+    userGoalChallengeIds = list(map(lambda attempt: attempt.goal_challenge.pk, userGoalChallenges))
+    print(userGoalChallengeIds)
+
+    challenges = GoalChallenge.objects.filter(goal=matching_topic).exclude(id__in=userGoalChallengeIds)
+    challenge_models = list(map(lambda challenge: model_to_dict(challenge), challenges))
+    return JsonResponse({"challenges": challenge_models})
+
+@csrf_exempt
+@api_view(["GET"])
 def get_user_goal_attempts(request, id):
         user = request.user
         challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, misess_remaining__gte=0, completed=False)
