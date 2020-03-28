@@ -99,7 +99,6 @@ def get_available_user_challenges_for_topic(request, topic_id):
 
     userGoalChallenges = GoalAttempt.objects.filter(user=user, completed=False).select_related('goal_challenge')
     userGoalChallengeIds = list(map(lambda attempt: attempt.goal_challenge.pk, userGoalChallenges))
-    print(userGoalChallengeIds)
 
     challenges = GoalChallenge.objects.filter(goal=matching_topic).exclude(id__in=userGoalChallengeIds)
     challenge_models = list(map(lambda challenge: model_to_dict(challenge), challenges))
@@ -111,12 +110,34 @@ def get_user_goal_attempts(request, id):
         user = request.user
         challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, misess_remaining__gte=0, completed=False)
 
-        serialized_challenges = []
-        for challenge in challenges:
-          serializer = GoalAttemptSerializer(challenge)
-          serialized_challenges.append(serializer.data)
+        today = datetime.today().date()
+        entrysToday = GoalAttemptEntry.objects.filter(user=user, updated_at__gte=today).select_related('goal_attempt')
+        
+        entrysTodayLookup = set()
+        for entry in entrysToday:
+            entrysTodayLookup.add(entry.goal_attempt.pk)
 
-        return JsonResponse({"attempts": serialized_challenges})
+        challenges_needing_daily_attempt = []
+        challenges_completed_today = []
+
+        for challenge in challenges:
+          if challenge.pk in entrysTodayLookup:
+            challenges_completed_today.append(challenge)
+          else:
+            challenges_needing_daily_attempt.append(challenge)
+
+        serialized_challenges_completed_today = []
+        for challenge in challenges_completed_today:
+          serializer = GoalAttemptSerializer(challenge)
+          serialized_challenges_completed_today.append(serializer.data)
+
+        serialized_challenges_needing_attempt = []
+        for challenge in challenges_needing_daily_attempt:
+          serializer = GoalAttemptSerializer(challenge)
+          serialized_challenges_needing_attempt.append(serializer.data)
+
+        return JsonResponse({"due_soon": serialized_challenges_needing_attempt,
+          "completed_today" : serialized_challenges_completed_today})
 
 @csrf_exempt
 @api_view(["GET"])
