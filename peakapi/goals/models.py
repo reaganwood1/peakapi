@@ -12,6 +12,7 @@ class GoalChallenge(models.Model):
 	attempts_to_complete = models.IntegerField(default=1)
 	failure_amount = models.IntegerField(default=0)
 	goal = models.ForeignKey(Goal, on_delete=models.PROTECT)
+	difficulty = models.CharField(max_length=30, default="EASY")
 
 class GoalAttempt(models.Model):
 	user = models.ForeignKey(User, on_delete=models.PROTECT)

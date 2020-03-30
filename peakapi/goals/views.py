@@ -52,33 +52,34 @@ def post_goal(request):
 @csrf_exempt
 @api_view(["POST"])
 def post_goal_challenge(request):
-   	title = request.data.get("title")
-   	attempts_to_complete = request.data.get("attempts_to_complete")
-   	failure_amount = request.data.get("failure_amount")
-   	goal_id = request.data.get("goal_id")
+        title = request.data.get("title")
+        attempts_to_complete = request.data.get("attempts_to_complete")
+        failure_amount = request.data.get("failure_amount")
+        goal_id = request.data.get("goal_id")
+        difficulty = request.data.get("difficulty")
 
-   	if title is None or attempts_to_complete is None or failure_amount is None or goal_id is None:
-   		return Response({'error': 'Please provide a title, attempts to complete, and a failure amount'},
-                        status=HTTP_400_BAD_REQUEST)
-   	# check if the title already exists
-   	#TODO: check for identical ones
+        if title is None or attempts_to_complete is None or failure_amount is None or goal_id is None or difficulty is None:
+            return Response({'error': 'Please provide a title, attempts to complete, and a failure amount'},
+                            status=HTTP_400_BAD_REQUEST)
+        # check if the title already exists
+        #TODO: check for identical ones
 
-   	matching_goal = Goal.objects.get(pk=goal_id)
-   	if matching_goal is None:
-   		return Response({'error': 'Goal not found'},
-                        status=HTTP_400_BAD_REQUEST)
+        matching_goal = Goal.objects.get(pk=goal_id)
+        if matching_goal is None:
+            return Response({'error': 'Goal not found'},
+                            status=HTTP_400_BAD_REQUEST)
 
 
-   	goal_attempt = GoalChallenge(title=title,
-   		attempts_to_complete=attempts_to_complete, failure_amount=failure_amount, goal=matching_goal)
-   	goal_attempt.save()
+        goal_attempt = GoalChallenge(title=title,
+            attempts_to_complete=attempts_to_complete, failure_amount=failure_amount, goal=matching_goal, difficulty=difficulty)
+        goal_attempt.save()
 
-   	values = []
-   	values.append(goal_attempt)
+        values = []
+        values.append(goal_attempt)
 
-   	response = serializers.serialize("json", values)
+        response = serializers.serialize("json", values)
 
-   	return HttpResponse(response, content_type='application/json')
+        return HttpResponse(response, content_type='application/json')
 
 @csrf_exempt
 @api_view(["GET"])
@@ -231,6 +232,6 @@ def post_user_goal_entry(request, goal_attempt_id):
 
         matching_goal_attempt.save()
 
-        attemptResponse = model_to_dict(matching_goal_attempt)
+        serializer = GoalAttemptSerializer(matching_goal_attempt)
 
-        return JsonResponse({"attempt": attemptResponse})
+        return JsonResponse({"attempt": serializer.data})
