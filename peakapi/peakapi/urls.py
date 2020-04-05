@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import login, sample_api, loginFromAccessToken, postFacebookLogin
+from .views import login, sample_api, loginFromAccessToken, postFacebookLogin, logout
 from goals.views import (get_goals, post_goal, post_goal_challenge, post_user_goal_attempt, 
   get_goal_challenges, get_user_goal_attempts, post_user_goal_entry, 
   get_completed_user_goal_attempts, get_failed_user_goal_attempts, get_available_user_challenges_for_topic)
@@ -25,6 +25,7 @@ from django.conf.urls import include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', login),
+    path('logout/', logout),
     path('login/access-token', loginFromAccessToken),
     path('sampleapi/', sample_api),
     path('goals/', get_goals),

@@ -71,13 +71,17 @@ def loginFromAccessToken(request):
     return JsonResponse({"user": user_dic, "token": access_token})
 
 
-
-
 @csrf_exempt
 @api_view(["GET"])
 def sample_api(request):
     data = {'sample_data': 123}
     return Response(data, status=HTTP_200_OK)
+
+@csrf_exempt
+@api_view(["POST"])
+def logout(request):
+        request.user.auth_token.delete()
+        return JsonResponse({"success": "successfully logged out"})
 
 @csrf_exempt
 @api_view(["POST"])
