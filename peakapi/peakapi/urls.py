@@ -15,10 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import login, sample_api, loginFromAccessToken
+from .views import login, sample_api, loginFromAccessToken, postFacebookLogin
 from goals.views import (get_goals, post_goal, post_goal_challenge, post_user_goal_attempt, 
   get_goal_challenges, get_user_goal_attempts, post_user_goal_entry, 
   get_completed_user_goal_attempts, get_failed_user_goal_attempts, get_available_user_challenges_for_topic)
+from django.conf import settings
+from django.conf.urls import include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,5 +36,7 @@ urlpatterns = [
    	path('user/<int:id>/attempts/', get_user_goal_attempts),
    	path('user/<int:id>/attempts/completed/', get_completed_user_goal_attempts),
    	path('user/<int:id>/attempts/failed/', get_failed_user_goal_attempts),
-   	path('user/attempt/<int:goal_attempt_id>/entry/', post_user_goal_entry)
+   	path('user/attempt/<int:goal_attempt_id>/entry/', post_user_goal_entry),
+    path('oauth/login/', postFacebookLogin),
+    path('api/auth/oauth/', include('rest_framework_social_oauth2.urls')),
 ]

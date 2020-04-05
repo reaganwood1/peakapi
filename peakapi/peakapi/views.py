@@ -11,7 +11,17 @@ from rest_framework.status import (
 from rest_framework.response import Response
 from django.core import serializers
 from django.http import HttpResponse, JsonResponse
+
 from django.forms.models import model_to_dict
+from rest_framework import generics, permissions, status, views
+from rest_framework.response import Response
+from requests.exceptions import HTTPError
+
+from social_django.utils import load_strategy, load_backend
+from social_core.backends.oauth import BaseOAuth2
+from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
+from peakapi.socialserializer import SocialSerializer
+
 import json
 
 
@@ -68,3 +78,69 @@ def loginFromAccessToken(request):
 def sample_api(request):
     data = {'sample_data': 123}
     return Response(data, status=HTTP_200_OK)
+
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes((AllowAny,))
+def postFacebookLogin(request):
+            """Authenticate user through the provider and access_token"""
+            serializer = SocialSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            provider = serializer.data.get('provider', None)
+            strategy = load_strategy(request)
+
+            try:
+                backend = load_backend(strategy=strategy, name=provider,
+                redirect_uri=None)
+
+            except MissingBackend:
+                return Response({'error': 'Please provide a valid provider'},
+                status=status.HTTP_400_BAD_REQUEST)
+            try:
+                if isinstance(backend, BaseOAuth2):
+                    access_token = request.data.get('access_token')
+                    if access_token is None:
+                        return Response({'error': 'Please provide a valid provider'},
+                            status=status.HTTP_400_BAD_REQUEST)
+                user = backend.do_auth(access_token)
+            except HTTPError as error:
+                return Response({
+                    "error": {
+                        "access_token": "Invalid token",
+                        "details": str(error)
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST)
+            except AuthTokenError as error:
+                return Response({
+                    "error": "Invalid credentials",
+                    "details": str(error)
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                authenticated_user = backend.do_auth(access_token, user=user) 
+            except HTTPError as error:
+                return Response({
+                    "error":"invalid token",
+                    "details": str(error)
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+            except AuthForbidden as error:
+                return Response({
+                    "error":"invalid token",
+                    "details": str(error)
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if authenticated_user and authenticated_user.is_active:
+                token, _ = Token.objects.get_or_create(user=authenticated_user)
+
+                user_dic = model_to_dict(authenticated_user)
+
+                token_dic = model_to_dict(token)
+
+                return JsonResponse({"user": user_dic, "token": token.key})
+            else:
+                return Response({
+                    "error": "Unexpected error",
+                    "details": "User could not be authorized"
+                }, status=status.HTTP_400_BAD_REQUEST)
+
