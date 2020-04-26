@@ -11,22 +11,27 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+env = environ.Env()
+environ.Env.read_env()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '+8568$905n5q68%x#wlc%@_6g12xv=spp()w$df6gymt88k&nr'
+# SECRET_KEY = '+8568$905n5q68%x#wlc%@_6g12xv=spp()w$df6gymt88k&nr'
+print(os.environ.get('SECRET_KEY'))
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = os.environ.get('DEBUG', '') == 'True'
+DEBUG = os.environ.get('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -78,8 +83,9 @@ MIDDLEWARE = [
 ]
 
 # Facebook configuration
-SOCIAL_AUTH_FACEBOOK_KEY = '' # TODO: set up in an env file
-SOCIAL_AUTH_FACEBOOK_SECRET = '' # TODO: set up in an env file
+SOCIAL_AUTH_FACEBOOK_SECRET = os.environ.get('SOCIAL_AUTH_FACEBOOK_SECRET', '688eaaafd9c241b616ceef7c6393c2a0')
+SOCIAL_AUTH_FACEBOOK_KEY = os.environ.get('SOCIAL_AUTH_FACEBOOK_KEY', '547246316217363')
+
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
 
 # Define SOCIAL_AUTH_FACEBOOK_SCOPE to get extra permissions from facebook. Email is not sent by default, to get it, you must request the email permission:
