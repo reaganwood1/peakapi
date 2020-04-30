@@ -23,15 +23,12 @@ environ.Env.read_env()
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = '+8568$905n5q68%x#wlc%@_6g12xv=spp()w$df6gymt88k&nr'
-print(os.environ.get('SECRET_KEY'))
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = os.environ.get('DEBUG', '') == 'True'
 DEBUG = os.environ.get('DEBUG') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['52.34.24.133', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -83,8 +80,8 @@ MIDDLEWARE = [
 ]
 
 # Facebook configuration
-SOCIAL_AUTH_FACEBOOK_SECRET = os.environ.get('SOCIAL_AUTH_FACEBOOK_SECRET', '688eaaafd9c241b616ceef7c6393c2a0')
-SOCIAL_AUTH_FACEBOOK_KEY = os.environ.get('SOCIAL_AUTH_FACEBOOK_KEY', '547246316217363')
+SOCIAL_AUTH_FACEBOOK_SECRET = os.environ.get('SOCIAL_AUTH_FACEBOOK_SECRET')
+SOCIAL_AUTH_FACEBOOK_KEY = os.environ.get('SOCIAL_AUTH_FACEBOOK_KEY')
 
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
 
