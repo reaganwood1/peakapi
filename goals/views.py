@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
@@ -28,6 +28,7 @@ def get_goals(request):
 
 @csrf_exempt
 @api_view(["POST"])
+@permission_classes((IsAdminUser,))
 def post_goal(request):
    	title = request.data.get("title")
    	if title is None:
@@ -51,6 +52,7 @@ def post_goal(request):
 
 @csrf_exempt
 @api_view(["POST"])
+@permission_classes((IsAdminUser,))
 def post_goal_challenge(request):
         title = request.data.get("title")
         attempts_to_complete = request.data.get("attempts_to_complete")
