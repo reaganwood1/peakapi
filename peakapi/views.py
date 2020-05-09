@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
@@ -21,12 +21,17 @@ from social_django.utils import load_strategy, load_backend
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 from peakapi.socialserializer import SocialSerializer
+from rest_framework.throttling import AnonRateThrottle
+from rest_framework.views import APIView
+
+from peakapi.throttles import BurstRateThrottle
 
 import json
 
 
 @csrf_exempt
 @api_view(["POST"])
+@throttle_classes([AnonRateThrottle])
 @permission_classes((AllowAny,))
 def login(request):
     username = request.data.get("user_name")
@@ -47,6 +52,7 @@ def login(request):
 
 @csrf_exempt
 @api_view(["POST"])
+@throttle_classes([BurstRateThrottle])
 @permission_classes((AllowAny,))
 def loginFromAccessToken(request):
     access_token = request.data.get("access_token")
@@ -85,6 +91,7 @@ def logout(request):
 
 @csrf_exempt
 @api_view(["POST"])
+@throttle_classes([AnonRateThrottle])
 @permission_classes((AllowAny,))
 def postFacebookLogin(request):
             """Authenticate user through the provider and access_token"""

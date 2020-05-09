@@ -38,6 +38,6 @@ urlpatterns = [
    	path('user/<int:id>/attempts/completed/', get_completed_user_goal_attempts),
    	path('user/<int:id>/attempts/failed/', get_failed_user_goal_attempts),
    	path('user/attempt/<int:goal_attempt_id>/entry/', post_user_goal_entry),
-    path('oauth/login/', postFacebookLogin),
     path('api/auth/oauth/', include('rest_framework_social_oauth2.urls')),
+    # path('oauth/login/', postFacebookLogin),
 ]
