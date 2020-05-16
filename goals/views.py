@@ -111,7 +111,7 @@ def get_available_user_challenges_for_topic(request, topic_id):
 @api_view(["GET"])
 def get_user_goal_attempts(request, id):
         user = request.user
-        challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user, misess_remaining__gte=0, completed=False)
+        challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user)
 
         today = datetime.today().date()
         entrysToday = GoalAttemptEntry.objects.filter(user=user, updated_at__gte=today).select_related('goal_attempt')
@@ -123,8 +123,15 @@ def get_user_goal_attempts(request, id):
         challenges_needing_daily_attempt = []
         challenges_completed_today = []
 
+        challenges_failed = []
+        challenges_finished = []
+
         for challenge in challenges:
-          if challenge.pk in entrysTodayLookup:
+          if challenge.completed == True:
+            challenges_finished.append(challenge)
+          elif challenge.misess_remaining < 0:
+            challenges_failed.append(challenge)
+          elif challenge.pk in entrysTodayLookup:
             challenges_completed_today.append(challenge)
           else:
             challenges_needing_daily_attempt.append(challenge)
@@ -139,8 +146,20 @@ def get_user_goal_attempts(request, id):
           serializer = GoalAttemptSerializer(challenge)
           serialized_challenges_needing_attempt.append(serializer.data)
 
+        serialized_challenges_failed = []
+        for challenge in challenges_failed:
+          serializer = GoalAttemptSerializer(challenge)
+          serialized_challenges_failed.append(serializer.data)
+
+        serialized_challenges_finished = []
+        for challenge in challenges_finished:
+          serializer = GoalAttemptSerializer(challenge)
+          serialized_challenges_finished.append(serializer.data)
+
         return JsonResponse({"due_soon": serialized_challenges_needing_attempt,
-          "completed_today" : serialized_challenges_completed_today})
+          "completed_today" : serialized_challenges_completed_today,
+          "failed" : serialized_challenges_failed,
+          "completed" : serialized_challenges_finished })
 
 @csrf_exempt
 @api_view(["GET"])
@@ -171,7 +190,7 @@ def post_user_goal_attempt(request, id):
             return Response({'error': 'Goal challenge not found'},
                             status=HTTP_400_BAD_REQUEST)
 
-        user_matching_challenges = GoalAttempt.objects.filter(goal_challenge=matching_goal_challenge, user=user)
+        user_matching_challenges = GoalAttempt.objects.filter(goal_challenge=matching_goal_challenge, user=user, completed=False)
         if user_matching_challenges.exists():
             return Response({'error': 'User already has matching challenge'},
                             status=HTTP_400_BAD_REQUEST)
