@@ -2,6 +2,7 @@ from django.shortcuts import render
 from goals.models import Goal, GoalChallenge, GoalAttempt, GoalAttemptEntry
 from goals.model_serializers import GoalAttemptSerializer
 from datetime import datetime
+from goals.time import getStartOfAttemptCycleDate, getEndOfAttemptCycleDate
 
 from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
@@ -113,8 +114,8 @@ def get_user_goal_attempts(request, id):
         user = request.user
         challenges = GoalAttempt.objects.select_related('goal_challenge').filter(user=user)
 
-        today = datetime.today().date()
-        entrysToday = GoalAttemptEntry.objects.filter(user=user, updated_at__gte=today).select_related('goal_attempt')
+        begginningOfCycle = getStartOfAttemptCycleDate()
+        entrysToday = GoalAttemptEntry.objects.filter(user=user, updated_at__gte=begginningOfCycle).select_related('goal_attempt')
         
         entrysTodayLookup = set()
         for entry in entrysToday:
@@ -233,7 +234,7 @@ def post_user_goal_entry(request, goal_attempt_id):
 	
         goal_entrys = GoalAttemptEntry.objects.filter(user = request.user, goal_attempt=matching_goal_attempt)
         for goal_entry in goal_entrys:
-            if goal_entry.created_at.date() >= datetime.today().date():
+            if goal_entry.created_at.date() >= getStartOfAttemptCycleDate():
                 return Response({'error': 'Goal has already been created today'},
                             status=HTTP_400_BAD_REQUEST)
 

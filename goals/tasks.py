@@ -2,6 +2,7 @@ from background_task import background
 from django.contrib.auth.models import User
 from goals.models import Goal, GoalChallenge, GoalAttempt, GoalAttemptEntry
 from datetime import datetime, timedelta
+from goals.time import getStartOfAttemptCycleDate, getEndOfAttemptCycleDate
 
 # TODO: fix task scheduler
 # @background(schedule=30)
@@ -17,17 +18,15 @@ def clear_goal_attempt(goalAttempt: GoalAttempt):
 	print("BOOM")
 	print("RUNNING THIS")
 	#chech if there is an entry sooner than today
-	todayMinusOneDayDateTime = datetime.today() - timedelta(days=1)
-	today = todayMinusOneDayDateTime.date()
+	beggingOfCycle = getStartOfAttemptCycleDate()
 
 	entrys = GoalAttemptEntry.objects.filter(goal_attempt=goalAttempt)
 
 	for entry in entrys:
-		print("TRYING THIS")
-		if entry.created_at.date() >= today:
+		if entry.created_at.date() >= beggingOfCycle:
 			return
 
 
 	print("SUBTRACTING")
 	goalAttempt.misess_remaining -= 1
-	# goalAttempt.save()
+	goalAttempt.save()
