@@ -24,10 +24,47 @@ from peakapi.socialserializer import SocialSerializer
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.contrib.auth.models import User
+
 from peakapi.throttles import BurstRateThrottle
 
 import json
 
+@csrf_exempt
+@api_view(["POST"])
+@throttle_classes([AnonRateThrottle])
+@permission_classes((AllowAny,))
+def signup(request):
+    username = request.data.get("user_name")
+    password = request.data.get("password")
+    email = request.data.get("email")
+    if username is None or password is None or email is None:
+        return Response({'error': 'Please provide a username, password, and email'},
+                        status=HTTP_400_BAD_REQUEST)
+
+    matching_users = User.objects.filter(username=username)
+    if matching_users.exists():
+        return Response({'error': 'Username already taken'},
+                        status=HTTP_400_BAD_REQUEST)
+
+    matching_users = User.objects.filter(email=email)
+    if matching_users.exists():
+        return Response({'error': 'Email already taken'},
+                        status=HTTP_400_BAD_REQUEST)
+
+    try:
+        validate_email(email)
+    except ValidationError as e:
+        return Response({'error': 'Email invalid'},
+                        status=HTTP_400_BAD_REQUEST)
+    else:
+        user = User.objects.create_user(username, email, password)
+        token, _ = Token.objects.get_or_create(user=user)
+        user_dic = model_to_dict(user)
+        token_dic = model_to_dict(token)
+        return JsonResponse({"user": user_dic, "token": token.key})
 
 @csrf_exempt
 @api_view(["POST"])
